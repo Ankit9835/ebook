@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import "@/db/connect";
 import express from 'express'
 import authRouter from './route/auth'
 
