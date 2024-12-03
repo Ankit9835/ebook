@@ -6,11 +6,13 @@ import authRouter from './route/auth'
 
 const app = express()
 
-const port = process.env.PORT || 4562
+
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use('/auth', authRouter)
 
+const port = process.env.PORT || 8989;
+
 app.listen(port, () => {
-    console.log(`application running on ${port}`)
-})
+  console.log(`The application is running on port http://localhost:${port}`);
+});

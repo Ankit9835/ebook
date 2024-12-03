@@ -6,17 +6,19 @@ import { z } from "zod";
 
 const authRouter = Router()
 
-const schema = z.object({
-    email: z
-      .string({
-        required_error: "Email is missing!",
-      })
-      .email("Zod says it is invalid!"),
-  });
+// const schema = z.object({
+//     email: z
+//       .string({
+//         required_error: "Email is missing!",
+//       })
+//       .email("Zod says it is invalid!"),
+//   });
   
 
-authRouter.post('/generate-link', (req,res,next) => {
-  validate(emailValidationSchema)
-}, generateLink)
+authRouter.post(
+  "/generate-link",
+  validate(emailValidationSchema),
+  generateLink
+);
 
 export default authRouter
