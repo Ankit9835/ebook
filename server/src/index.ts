@@ -1,8 +1,11 @@
 import 'dotenv/config'
 import "@/db/connect";
-import express from 'express'
+import express, { ErrorRequestHandler } from 'express'
+import cookieParser from "cookie-parser";
 import authRouter from './route/auth'
 import { error } from 'console';
+import { errorHandler } from './middlewares/error';
+
 
 
 const app = express()
@@ -10,12 +13,11 @@ const app = express()
 
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
+app.use(cookieParser());
+
 app.use('/auth', authRouter)
 
-app.use((error,req,res,next) => {
-  res.status(500).json({error:error.message})
-}) as ErrorRequestHandler)
-
+app.use(errorHandler);
 const port = process.env.PORT || 8989;
 
 app.listen(port, () => {
