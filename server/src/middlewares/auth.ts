@@ -18,6 +18,7 @@ declare global {
 
 export const isAuth: RequestHandler = async(req,res,next) => {
     const authToken = req.cookies?.authToken
+    console.log('auth', authToken)
     if(!authToken){
        return sendErrorResponse({
             message:"Unauthorized Response",
@@ -29,7 +30,7 @@ export const isAuth: RequestHandler = async(req,res,next) => {
     const payload = jwt.verify(authToken, process.env.JWT_SECRET!) as {
         userId: string
     }
-
+    console.log('payload',payload)
     const user = await UserModel.findById(payload.userId)
     if(!user){
         return sendErrorResponse({
@@ -40,7 +41,7 @@ export const isAuth: RequestHandler = async(req,res,next) => {
     }
 
     req.user = formatUserProfile(user)
-    
+    console.log('req',req.user)
       next();
 
 }

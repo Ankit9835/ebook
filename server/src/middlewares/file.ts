@@ -11,28 +11,30 @@ declare global {
   }
   
 
-  export const fileParser: RequestHandler = async (req, res, next) => {
-    const form = formidable();
-    const [fields, files] = await form.parse(req);
-  
-    if (!req.body) req.body = {};
-    if (!req.files) req.files = {};
-  
+ export const fileParser: RequestHandler = async (req, res, next) => {
+  const form = formidable({ keepExtensions: true });
+
+  form.parse(req, (err, fields, files) => {
+    if (err) {
+      console.error('Form parse error:', err);
+      return res.status(400).json({ error: 'Invalid form data' });
+    }
+
+    req.body = {};
+    req.files = {};
+
+    // Handle fields (like `name`)
     for (const key in fields) {
-      const filedValue = fields[key];
-      if (filedValue) req.body[key] = filedValue[0];
+      const value = fields[key];
+      req.body[key] = Array.isArray(value) ? value[0] : value;
     }
-  
+
+    // Handle files
     for (const key in files) {
-      const filedValue = files[key];
-      if (filedValue) {
-        if (filedValue.length > 1) {
-          req.files[key] = filedValue;
-        } else {
-          req.files[key] = filedValue[0];
-        }
-      }
+      const value = files[key];
+      req.files[key] = Array.isArray(value) ? value : value[0];
     }
-  
+
     next();
-  };
+  });
+};

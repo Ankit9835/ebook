@@ -32,7 +32,7 @@ authRouter.put(
   "/profile",
   isAuth,
   fileParser,
-  validate(newUserSchema),
+  //validate(newUserSchema),
   updateProfile
 );
 

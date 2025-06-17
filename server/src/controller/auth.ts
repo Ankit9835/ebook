@@ -8,7 +8,8 @@ import { formatUserProfile, sendErrorResponse } from "@/utils/helper";
 import jwt from "jsonwebtoken"
 import s3Client from "@/cloud/aws";
 import { PutObjectCommand } from "@aws-sdk/client-s3"
-import fs from "fs";
+import * as fs from 'fs'; // ✅ Recommended for your current setup
+
 
 
 export const generateLink: RequestHandler = async (req,res,next) => {
@@ -114,6 +115,7 @@ export const sendProfileInfo: RequestHandler = (req, res) => {
 };
 
 export const updateProfile: RequestHandler = async (req, res) => {
+  console.log('id',req.body.name)
   const user = await UserModel.findByIdAndUpdate(
     req.user.id,
     {
@@ -125,8 +127,6 @@ export const updateProfile: RequestHandler = async (req, res) => {
     }
   );
 
-  console.log('name',req.body.name)
-
   if (!user)
     return sendErrorResponse({
       res,
@@ -135,23 +135,38 @@ export const updateProfile: RequestHandler = async (req, res) => {
     });
 
   // if there is any file upload them to cloud and update the database
-  // const file = req.files.avatar
-  // const uniqueFileName = user._id + '-' + user.name + '.png'
-  // const bucketName = 'ebook620'
-  // if(!Array.isArray(file)){
-  //   const putCommand = new PutObjectCommand({
-  //     Bucket: 'ebook620',
-  //     Key: uniqueFileName,
-  //     Body: fs.readFileSync(file.filePath)
-  //   })
-  //   await s3Client.send(putCommand)
+  const file = req?.files?.avatar
+  console.log('file',file)
+  const uniqueFileName = user._id + '-' + user.name + '.png'
+  const bucketName = 'ebook620'
+ if (Array.isArray(file) && file.length > 0) {
+  const avatarFile = file[0];
 
-  //   user.avatar = {
-  //     id: uniqueFileName,
-  //     url: `https://${bucketName}.s3.amazonaws.com/${uniqueFileName}`
-  //   }
-  //   await user.save()
-  // }
+  // ✅ Read file from filesystem (make sure path exists)
+  const fileBuffer = fs.readFileSync(avatarFile.filepath);
+
+  const bucketName = "ebook620";
+  const uniqueFileName = `${user.id}-${user.name}.png`;
+
+  // ✅ Upload to S3 with ContentType
+  const putCommand = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: uniqueFileName,
+    Body: fileBuffer,
+    ContentType: avatarFile.mimetype, // 🔥 important for viewing image
+  });
+
+  await s3Client.send(putCommand);
+
+  // ✅ Save to DB
+  user.avatar = {
+    id: uniqueFileName,
+    url: `https://${bucketName}.s3.amazonaws.com/${uniqueFileName}`,
+  };
+
+  await user.save();
+}
+
 
   res.json({ profile: formatUserProfile(user) });
 };
