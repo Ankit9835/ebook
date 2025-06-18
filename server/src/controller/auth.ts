@@ -7,8 +7,10 @@ import mail from "@/utils/mail";
 import { formatUserProfile, sendErrorResponse } from "@/utils/helper";
 import jwt from "jsonwebtoken"
 import s3Client from "@/cloud/aws";
-import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import * as fs from 'fs'; // ✅ Recommended for your current setup
+import { uploadAvatarToAws } from "@/utils/fileUpload";
+import slugify from "slugify";
 
 
 
@@ -134,35 +136,23 @@ export const updateProfile: RequestHandler = async (req, res) => {
       status: 500,
     });
 
+    
+
   // if there is any file upload them to cloud and update the database
   const file = req?.files?.avatar
-  console.log('file',file)
+  c
   const uniqueFileName = user._id + '-' + user.name + '.png'
-  const bucketName = 'ebook620'
+  
  if (Array.isArray(file) && file.length > 0) {
-  const avatarFile = file[0];
 
-  // ✅ Read file from filesystem (make sure path exists)
-  const fileBuffer = fs.readFileSync(avatarFile.filepath);
 
-  const bucketName = "ebook620";
-  const uniqueFileName = `${user.id}-${user.name}.png`;
-
-  // ✅ Upload to S3 with ContentType
-  const putCommand = new PutObjectCommand({
-    Bucket: bucketName,
-    Key: uniqueFileName,
-    Body: fileBuffer,
-    ContentType: avatarFile.mimetype, // 🔥 important for viewing image
-  });
-
-  await s3Client.send(putCommand);
-
+  
+  const uniqueFileName = `${user._id}-${slugify(req.body.name, {
+      lower: true,
+      replacement: "-",
+    })}.png`;
   // ✅ Save to DB
-  user.avatar = {
-    id: uniqueFileName,
-    url: `https://${bucketName}.s3.amazonaws.com/${uniqueFileName}`,
-  };
+  user.avatar = await uploadAvatarToAws(file,uniqueFileName,user.avatar?.id)
 
   await user.save();
 }
