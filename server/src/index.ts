@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRouter from './route/auth'
 import { error } from 'console';
 import { errorHandler } from './middlewares/error';
+import authorRouter from './route/author';
 
 
 
@@ -16,6 +17,7 @@ app.use(express.urlencoded({extended: false}))
 app.use(cookieParser());
 
 app.use('/auth', authRouter)
+app.use('/author', authorRouter)
 
 app.use(errorHandler);
 const port = process.env.PORT || 8989;
