@@ -140,7 +140,7 @@ export const updateProfile: RequestHandler = async (req, res) => {
 
   // if there is any file upload them to cloud and update the database
   const file = req?.files?.avatar
-  c
+  
   const uniqueFileName = user._id + '-' + user.name + '.png'
   
  if (Array.isArray(file) && file.length > 0) {

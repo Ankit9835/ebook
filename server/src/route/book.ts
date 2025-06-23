@@ -6,6 +6,6 @@ import { Router } from "express";
 
 const bookRouter = Router()
 
-bookRouter.post('/create', isAuth, isAuthor, fileParser, validate(newBookSchema), createBook)
+bookRouter.post('/create', isAuth, isAuthor, fileParser,  createBook)
 
 export default bookRouter
