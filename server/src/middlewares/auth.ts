@@ -1,7 +1,9 @@
 import UserModel from "@/models/user";
+import { ReviewBookHandler } from "@/types";
 import { formatUserProfile, sendErrorResponse } from "@/utils/helper";
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
+
 
 declare global {
     namespace Express {
@@ -52,4 +54,12 @@ export const isAuth: RequestHandler = async(req,res,next) => {
 export const isAuthor: RequestHandler = (req,res,next) => {
   if (req.user.role === "author") next();
   else sendErrorResponse({ message: "Invalid request!", res, status: 401 });
+}
+
+export const isPurchasedByUser: ReviewBookHandler = async(req,res,next) => {
+  const user = await UserModel.findOne({_id:req.user.id, book: req.body.bookId})
+  if(!user){
+    return sendErrorResponse({ message: "Review not allowed", res, status: 402 })
+  }
+  next()
 }

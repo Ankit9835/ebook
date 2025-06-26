@@ -1,10 +1,10 @@
 import BookModel, { BookDoc } from "@/models/book";
-import { RequestBookHandler } from "@/types";
-import { formatFileSize } from "@/utils/helper";
+import { RequestBookHandler, UpdateBookHandler } from "@/types";
+import { formatFileSize, sendErrorResponse } from "@/utils/helper";
 import { Types } from "mongoose";
 import slugify from "slugify";
 import * as fs from 'fs';
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import s3Client from "@/cloud/aws";
 import { generateFileUploadUrl, uploadAwsLink, uploadBookCoverAws } from "@/utils/fileUpload";
 import AuthorModel from "@/models/author";
@@ -74,4 +74,88 @@ export const createBook: RequestBookHandler = async(req,res) => {
         }
     })
     res.send(fileUploadUrl);
+}
+
+export const updateBook: UpdateBookHandler = async(req,res) => {
+    const {body,files,user} = req
+    const {title,description,
+    genre,
+    language,
+    fileInfo,
+    price,
+    publicationName,
+    publishedAt,slug} = body
+
+    const {cover, book: newBookFile} = files
+
+    const newBook = await BookModel.findOne({
+        slug,
+        author: user.authorId,
+    });
+
+    if (!newBook) {
+        return sendErrorResponse({
+        message: "Book not found!",
+        status: 404,
+        res,
+        });
+    }
+
+    newBook.title = title;
+    newBook.description = description;
+    newBook.language = language;
+    newBook.publicationName = publicationName;
+    newBook.genre = genre;
+    newBook.publishedAt = publishedAt;
+    newBook.price = price;
+
+    let fileUploadUrl = "";
+ 
+    if (
+      newBookFile &&
+      !Array.isArray(newBookFile) &&
+      newBookFile.mimetype === "application/epub+zip"
+    ) {
+      // remove the old book from cloud (bucket)
+      const deleteCommand = new DeleteObjectCommand({
+        Bucket: process.env.AWS_PRIVATE_BUCKET,
+        Key: newBook.fileInfo.id,
+      });
+
+      await s3Client.send(deleteCommand);
+
+      // generate (sign) new url to upload book
+      const fileName = slugify(`${newBook._id} ${newBook.title}.epub`, {
+        lower: true,
+        replacement: "-",
+      });
+      fileUploadUrl = await generateFileUploadUrl(s3Client, {
+        bucket: process.env.AWS_PRIVATE_BUCKET!,
+        contentType: fileInfo?.type || newBookFile.mimetype,
+        uniqueKey: fileName,
+      });
+    }
+    const bucketName = 'ebook620'
+    if (cover && !Array.isArray(cover) && cover.mimetype?.startsWith("image")) {
+      // remove old cover from the cloud (bucket)
+      if (newBook.cover?.id) {
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: process.env.AWS_PUBLIC_BUCKET,
+          Key: newBook.cover.id,
+        });
+        await s3Client.send(deleteCommand);
+      }
+      // upload new cover to the cloud (bucket)
+      const uniqueFileName = slugify(`${newBook._id} ${newBook.title}.png`, {
+        lower: true,
+        replacement: "-",
+      });
+
+      newBook.cover = await uploadBookCoverAws(cover,bucketName,uniqueFileName)
+    }
+  
+
+  await newBook.save();
+
+  res.send(fileUploadUrl);
 }

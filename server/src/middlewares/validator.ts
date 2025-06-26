@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { ZodObject, ZodRawShape, ZodType, z } from "zod";
+import { isValidObjectId } from "mongoose";
 
 export const emailValidationSchema = z.object({
   email: z
@@ -40,8 +41,7 @@ export const newAuthorSchema = z.object({
     .optional(),
 });
 
-
-export const newBookSchema = z.object({
+const commonBookSchema = {
   title: z
     .string({
       required_error: "Title is missing!",
@@ -110,8 +110,10 @@ export const newBookSchema = z.object({
       (price) => price.sale <= price.mrp,
       "Sale price should be less then mrp!"
     ),
-  fileInfo: z
-    .string({
+}
+
+const fileInfo = 
+  z.string({
       required_error: "File info is missing!",
       invalid_type_error: "Invalid file info!",
     })
@@ -144,7 +146,50 @@ export const newBookSchema = z.object({
           })
           .nonnegative("Invalid fileInfo.size!"),
       })
-    ),
+    )
+
+
+
+export const newBookSchema = z.object({
+  ...commonBookSchema,
+  fileInfo
+});
+
+export const updateBookSchema = z.object({
+  ...commonBookSchema,
+  slug:z.string({
+    message: "Invalid slug"
+  }).trim(),
+  fileInfo: fileInfo.optional()
+});
+
+export const newReviewSchema = z.object({
+  rating: z
+    .number({
+      required_error: "Rating is missing!",
+      invalid_type_error: "Invalid rating!",
+    })
+    .nonnegative("Rating must be within 1 to 5.")
+    .min(1, "Minium rating should be 1")
+    .max(5, "Maximum rating should be 5"),
+  content: z
+    .string({
+      invalid_type_error: "Invalid rating!",
+    })
+    .optional(),
+  bookId: z
+    .string({
+      required_error: "Book id is missing!",
+      invalid_type_error: "Invalid book id!",
+    })
+    .transform((arg, ctx) => {
+      if (!isValidObjectId(arg)) {
+        ctx.addIssue({ code: "custom", message: "Invalid book id!" });
+        return z.NEVER;
+      }
+
+      return arg;
+    }),
 });
 
 export const validate = <T extends ZodRawShape>(
