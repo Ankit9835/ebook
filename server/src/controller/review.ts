@@ -1,8 +1,11 @@
+import BookModel from "@/models/book";
 import ReviewModel from "@/models/review";
 import { ReviewBookHandler } from "@/types";
 import { sendErrorResponse } from "@/utils/helper";
+import { group } from "console";
 import { RequestHandler } from "express";
 import { isValidObjectId } from "mongoose";
+import { Types } from "mongoose";
 
 export const createReview: ReviewBookHandler = async(req,res) => {
     const { bookId, rating, content } = req.body;
@@ -12,6 +15,24 @@ export const createReview: ReviewBookHandler = async(req,res) => {
     { content, rating },
     { upsert: true }
   );
+
+  const [result] = await ReviewModel.aggregate<{averageRating:number}>([
+    {
+        $match:{
+            book:new Types.ObjectId(bookId),
+        }
+    },
+    {
+        $group:{
+            _id:null,
+            averageRating: {$avg: "$rating"}
+        }
+    }
+  ])
+
+  await BookModel.findByIdAndUpdate(bookId,{
+    averageRating: result.averageRating
+  })
 
   res.json({
     message: "Review added.",
