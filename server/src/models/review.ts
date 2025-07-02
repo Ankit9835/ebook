@@ -6,6 +6,7 @@ interface ReviewDoc {
     book: Types.ObjectId
     rating: number
     content?: string
+    createdAt: Date
 }
 
 const reviewSchema = new Schema<ReviewDoc>({

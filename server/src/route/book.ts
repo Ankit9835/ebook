@@ -1,4 +1,4 @@
-import { createBook, updateBook } from "@/controller/book";
+import { createBook, getAllPurchasedBooks, getBooksByGenre, getBooksPublicDetails, getCommonBookAccessUrl, updateBook } from "@/controller/book";
 import { isAuth, isAuthor } from "@/middlewares/auth";
 import { fileParser } from "@/middlewares/file";
 import { newBookSchema, validate } from "@/middlewares/validator";
@@ -8,5 +8,9 @@ const bookRouter = Router()
 
 bookRouter.post('/create', isAuth, isAuthor, fileParser,  createBook)
 bookRouter.patch('/', isAuth, isAuthor, fileParser,  updateBook)
+bookRouter.get('/list', isAuth, getAllPurchasedBooks)
+bookRouter.get('/:slug', isAuth, getBooksPublicDetails)
+bookRouter.get('/by-genre/:genre', getBooksByGenre)
+bookRouter.get('/read/:slug', isAuth, getCommonBookAccessUrl)
 
 export default bookRouter

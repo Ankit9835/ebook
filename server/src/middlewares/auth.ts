@@ -1,5 +1,5 @@
 import UserModel from "@/models/user";
-import { ReviewBookHandler } from "@/types";
+import { HistoryBookHandler, ReviewBookHandler } from "@/types";
 import { formatUserProfile, sendErrorResponse } from "@/utils/helper";
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
@@ -60,6 +60,14 @@ export const isPurchasedByUser: ReviewBookHandler = async(req,res,next) => {
   const user = await UserModel.findOne({_id:req.user.id, book: req.body.bookId})
   if(!user){
     return sendErrorResponse({ message: "Review not allowed", res, status: 402 })
+  }
+  next()
+}
+
+export const isPurchasedByUserHistory: HistoryBookHandler = async(req,res,next) => {
+  const user = await UserModel.findOne({_id:req.user.id, book: req.body.book})
+  if(!user){
+    return sendErrorResponse({ message: "Book Id not valid", res, status: 402 })
   }
   next()
 }
