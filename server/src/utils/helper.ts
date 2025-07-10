@@ -34,3 +34,7 @@ export const formatUserProfile = (user: UserDoc): Request['user'] => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
+export const sanitizeUrl = (url: string) => {
+  return url.replace(/ /g, "%20");
+};
+

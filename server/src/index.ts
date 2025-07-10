@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import "@/db/connect";
 import express, { ErrorRequestHandler } from 'express'
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from './route/auth'
 import { error } from 'console';
@@ -10,12 +11,14 @@ import bookRouter from './route/book';
 import reviewRouter from './route/review';
 import historyRouter from './route/history';
 import cartRouter from './route/cart';
+import checkoutRouter from './route/checkout';
+import webhookRouter from './route/webhook';
 
 
 
 const app = express()
-
-
+//app.use(cors({ origin: [process.env.APP_URL!], credentials: true }));
+app.use("/webhook", webhookRouter);
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser());
@@ -26,6 +29,7 @@ app.use('/book', bookRouter)
 app.use('/review', reviewRouter)
 app.use('/history', historyRouter)
 app.use('/cart', cartRouter)
+app.use('/checkout', checkoutRouter)
 
 app.use(errorHandler);
 const port = process.env.PORT || 8989;
