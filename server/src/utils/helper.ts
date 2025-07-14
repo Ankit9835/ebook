@@ -22,7 +22,8 @@ export const formatUserProfile = (user: UserDoc): Request['user'] => {
       role: user.role,
       avatar:user?.avatar?.url,
       signedUp:user.signedUp,
-      authorId: user?.authorId
+      authorId: user?.authorId,
+      books: user.book.map(b => b.toString())
     };
   };
 

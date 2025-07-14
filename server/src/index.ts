@@ -13,6 +13,7 @@ import historyRouter from './route/history';
 import cartRouter from './route/cart';
 import checkoutRouter from './route/checkout';
 import webhookRouter from './route/webhook';
+import orderRouter from './route/order';
 
 
 
@@ -30,6 +31,7 @@ app.use('/review', reviewRouter)
 app.use('/history', historyRouter)
 app.use('/cart', cartRouter)
 app.use('/checkout', checkoutRouter)
+app.use('/orders', orderRouter)
 
 app.use(errorHandler);
 const port = process.env.PORT || 8989;
