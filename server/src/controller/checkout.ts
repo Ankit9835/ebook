@@ -192,7 +192,6 @@ export const instantCheckout: RequestHandler = async (req, res) => {
         },
       },
     }],
-  
 });
 
 
