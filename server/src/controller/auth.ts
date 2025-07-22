@@ -11,6 +11,7 @@ import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import * as fs from 'fs'; // ✅ Recommended for your current setup
 import { uploadAvatarToAws } from "@/utils/fileUpload";
 import slugify from "slugify";
+import { UserHandler } from "@/types";
 
 
 
@@ -116,7 +117,7 @@ export const sendProfileInfo: RequestHandler = (req, res) => {
   });
 };
 
-export const updateProfile: RequestHandler = async (req, res) => {
+export const updateProfile: UserHandler = async (req, res) => {
   console.log('id',req.body.name)
   const user = await UserModel.findByIdAndUpdate(
     req.user.id,

@@ -1,8 +1,9 @@
-import { cartItemsSchema, historyValidationSchema, newAuthorSchema, newBookSchema, newReviewSchema, updateBookSchema } from "@/middlewares/validator";
+import { cartItemsSchema, historyValidationSchema, newAuthorSchema, newBookSchema, newReviewSchema, newUserSchema, updateBookSchema } from "@/middlewares/validator";
 import { RequestHandler } from "express";
 import { z } from "zod";
 
 type AuthorHandlerBody = z.infer<typeof newAuthorSchema>;
+type UserHandlerBody = z.infer<typeof newUserSchema>;
 type BookHandlerBody = z.infer<typeof newBookSchema>
 type UpdateBookHandlerBody = z.infer<typeof updateBookSchema>;
 type ReviewHandlerBody = z.infer<typeof newReviewSchema>;
@@ -15,3 +16,4 @@ export type UpdateBookHandler = RequestHandler<{}, {}, UpdateBookHandlerBody>
 export type ReviewBookHandler = RequestHandler<{}, {}, ReviewHandlerBody>;
 export type HistoryBookHandler = RequestHandler<{}, {}, HistoryHandlerBody>;
 export type CartBookHandler = RequestHandler<{}, {}, CartHandlerBody>;
+export type UserHandler = RequestHandler<{}, {}, UserHandlerBody>;
