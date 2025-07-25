@@ -27,7 +27,7 @@ authRouter.post('/test', fileParser, (req,res) => {
   console.log(req.body)
 })
 authRouter.get('/verify', verifyAuthToken)
-//authRouter.get('/profile', isAuth, sendProfileInfo)
+authRouter.get('/profile', isAuth, sendProfileInfo)
 authRouter.put(
   "/profile",
   isAuth,

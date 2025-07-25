@@ -4,6 +4,7 @@ import { FC, useState, FormEventHandler, useEffect } from "react";
 import Book from "../svg/Book";
 import client from "../api/client";
 import { RiMailCheckLine } from "react-icons/ri";
+import { parseError } from "../utils/helper";
 
 const validateEmail =  /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
 
@@ -25,7 +26,7 @@ const Signup: FC<Props> = () => {
                     })
         setShowSuccessResponse(true)
     } catch (error) {
-        console.log(error)
+        parseError(error)
     } finally{
         setBusy(false)
     }
