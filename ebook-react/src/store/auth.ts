@@ -18,7 +18,7 @@ export interface AuthState {
 }
 
 const initialState: AuthState = {
-    status: 'unauthenticated',
+    status: 'busy',
     profile: null
 }
 

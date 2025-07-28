@@ -15,7 +15,7 @@ export interface IAuthContext {
 
 export const AuthContext = createContext<IAuthContext>({
   profile: null,
-  status: "authenticated",
+  status: "busy",
 });
 
 const AuthProvider: FC<Props> = ({ children }) => {
@@ -34,6 +34,7 @@ const AuthProvider: FC<Props> = ({ children }) => {
   // }
 
   useEffect(() => {
+    dispatch(updateAuthStatus('busy'))
     client.get("/auth/profile").then(({ data }) => {
         //console.log('data',data)
       dispatch(updateProfile(data.profile));

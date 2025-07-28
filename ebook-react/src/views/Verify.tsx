@@ -14,7 +14,7 @@ const Verify = () => {
     try {
         const profile = JSON.parse(profileInfoString)
         console.log(profile)
-        if(!profile.SignedUp) return <Navigate to='/new-user' />
+        if(!profile.signedUp) return <Navigate to='/new-user' />
         dispatch(updateProfile(profile))
         return <Navigate to='/' />
     } catch (error) {
