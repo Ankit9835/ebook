@@ -12,6 +12,8 @@ import { AuthContext } from './context/AuthProvider';
 import UpdateProfile from './views/UpdateProfile';
 import Guest from './routes/Guest';
 import Private from './routes/Private';
+import NewBookForm from './views/NewBookForm';
+import UpdateBookForm from './views/UpdateBookForm';
 
 
 
@@ -35,6 +37,8 @@ const App: FC<Props> = () => {
         <Route element={<Private />}>
           <Route path="/profile" element={<Profile />} />
           <Route path="/update-profile" element={<UpdateProfile />} />
+          <Route path="/create-book" element={<NewBookForm />} />
+          <Route path="/update-book" element={<UpdateBookForm />} />
         </Route>
       </Routes>
       
