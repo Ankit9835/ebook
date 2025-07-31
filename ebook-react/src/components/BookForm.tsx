@@ -5,6 +5,8 @@ import PosterSelector from './PosterSelector';
 import RichEditor from './rich-editor';
 import { parseDate } from "@internationalized/date";
 import { z } from "zod";
+import ErrorList from './common/ErrorList';
+import clsx from "clsx";
 
 interface Props {
     title:string
@@ -99,7 +101,10 @@ const newBookSchema = z.object({
 const BookForm: React.FC<Props> = ({title,submitBtnTitle}) => {
  const [bookInfo,setBookInfo] = React.useState<DefaultForm>(defaultBookInfo)
  const [cover,setCover] = React.useState('')
-  const [isForUpdate, setIsForUpdate] = React.useState(false);
+ const [isForUpdate, setIsForUpdate] = React.useState(false);
+ const [errors, setErrors] = React.useState<{
+    [key: string]: string[] | undefined;
+  }>();
 
 const handleTextChange: React.ChangeEventHandler<HTMLInputElement> = ({target}) => {
     const {name,value} = target
@@ -131,11 +136,24 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
     const {file, cover} = bookInfo
 
     if (file?.type !== "application/epub+zip") {
-      return console.log("Please select a valid (.epub) file.");
+      return setErrors({...errors, file: ["Please select a valid epub file."] });
+    } else {
+      setErrors({
+        ...errors,
+        file: undefined,
+      });
     }
 
      if (cover && !cover.type.startsWith("image/")) {
-      return console.log("Please select a poster.");
+       return setErrors({
+        ...errors,
+        cover: ["Please select a valid poster file."],
+      });
+    } else {
+      setErrors({
+        ...errors,
+        file: undefined,
+      });
     }
 
      if (cover) {
@@ -163,7 +181,7 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
 
     const result = newBookSchema.safeParse(bookToSend);
     if (!result.success) {
-      return console.log(result.error.flatten().fieldErrors);
+      return setErrors(result.error.flatten().fieldErrors);
     }
 
     console.log(result.data);
@@ -186,7 +204,7 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
     <form onSubmit={handleSubmit} className="p-10 space-y-6">
       <h1 className="pb-6 font-semibold text-2xl w-full">{title}</h1>
 
-      <label htmlFor="file">
+      <label htmlFor="file" className={clsx("mb-2", errors?.file && "text-red-400")}>
         <span>Select File: </span>
         <input
           accept="application/epub+zip"
@@ -196,13 +214,13 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
           onChange={handleFileChange}
         />
       </label>
-
+      <ErrorList errors={errors?.file} />
       <PosterSelector
         src={cover}
         name="cover"
-        // isInvalid
         fileName={bookInfo.cover?.name}
-        // errorMessage="This is the very long long file name.png"
+        isInvalid={errors?.cover ? true : false}
+        errorMessage={<ErrorList errors={errors?.cover} />}
         onChange={handleFileChange}
       />
 
@@ -214,12 +232,14 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
         placeholder="Think & Grow Rich"
         value={bookInfo.title}
         onChange={handleTextChange}
+        isInvalid={errors?.title ? true : false}
+        errorMessage={<ErrorList errors={errors?.title} />}
       />
 
       <RichEditor
         placeholder="About Book..."
-        // isInvalid
-        // errorMessage="Something is wrong"
+        isInvalid={errors?.description ? true : false}
+        errorMessage={<ErrorList errors={errors?.description} />}
         value={bookInfo.description}
         editable
         onChange={(description) => setBookInfo({ ...bookInfo, description })}
@@ -233,6 +253,8 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
         placeholder="Penguin Book"
         value={bookInfo.publicationName}
         onChange={handleTextChange}
+        isInvalid={errors?.publicationName ? true : false}
+        errorMessage={<ErrorList errors={errors?.publicationName} />}
       />
 
       <DatePicker
@@ -243,6 +265,8 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
         label="Publish Date"
         showMonthAndYearPickers
        // isRequired
+       isInvalid={errors?.publishedAt ? true : false}
+        errorMessage={<ErrorList errors={errors?.publishedAt} />}
       />
 
       <Autocomplete
@@ -252,6 +276,8 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
         onSelectionChange={(key = "") => {
           setBookInfo({ ...bookInfo, language: key as string });
         }}
+        isInvalid={errors?.language ? true : false}
+        errorMessage={<ErrorList errors={errors?.language} />}
       >
         {languages.map((item) => {
           return (
@@ -269,6 +295,8 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
         onSelectionChange={(key = "") => {
           setBookInfo({ ...bookInfo, genre: key as string });
         }}
+        isInvalid={errors?.genre ? true : false}
+        errorMessage={<ErrorList errors={errors?.genre} />}
       >
         {genres.map((item) => {
           return (
@@ -296,6 +324,7 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
                 <span className="text-default-400 text-small">$</span>
               </div>
             }
+            isInvalid={errors?.price ? true : false}
           />
           <Input
             name="sale"
@@ -310,8 +339,12 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
                 <span className="text-default-400 text-small">$</span>
               </div>
             }
+            isInvalid={errors?.price ? true : false}
           />
         </div>
+      </div>
+      <div className="p-2">
+          <ErrorList errors={errors?.price} />
       </div>
 
       <Button type="submit" className="w-full">
