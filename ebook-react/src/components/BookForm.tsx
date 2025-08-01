@@ -4,18 +4,21 @@ import { genreList, genres, languageList, languages } from '../utils/data';
 import PosterSelector from './PosterSelector';
 import RichEditor from './rich-editor';
 import { parseDate } from "@internationalized/date";
-import { z } from "zod";
+import { set, z } from "zod";
 import ErrorList from './common/ErrorList';
 import clsx from "clsx";
+import { parseError } from '../utils/helper';
+import { tr } from 'zod/v4/locales';
 
 interface Props {
     title:string
     submitBtnTitle:string
     initialState?: unknown
+    onSubmit: (formData: FormData, file:File) => Promise<void>;
 }
 
 interface DefaultForm {
-    file?: File;
+  file?: File | null;
   cover?: File;
   title: string;
   description: string;
@@ -98,10 +101,11 @@ const newBookSchema = z.object({
   fileInfo: fileInfoSchema,
 });
 
-const BookForm: React.FC<Props> = ({title,submitBtnTitle}) => {
+const BookForm: React.FC<Props> = ({title,submitBtnTitle, onSubmit}) => {
  const [bookInfo,setBookInfo] = React.useState<DefaultForm>(defaultBookInfo)
  const [cover,setCover] = React.useState('')
  const [isForUpdate, setIsForUpdate] = React.useState(false);
+ const [busy, setBusy] = React.useState(false);
  const [errors, setErrors] = React.useState<{
     [key: string]: string[] | undefined;
   }>();
@@ -129,9 +133,10 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
     setBookInfo({ ...bookInfo, [name]: file });
   };
 
-  const handleBookPublish = () => {
-    console.log('test')
-    const formData = new FormData()
+  const handleBookPublish = async() => {
+    setBusy(true)
+    try {
+      const formData = new FormData()
 
     const {file, cover} = bookInfo
 
@@ -152,7 +157,7 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
     } else {
       setErrors({
         ...errors,
-        file: undefined,
+        cover: undefined,
       });
     }
 
@@ -184,7 +189,28 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
       return setErrors(result.error.flatten().fieldErrors);
     }
 
-    console.log(result.data);
+    for(let key in bookToSend) {
+      type keyType = keyof typeof bookToSend;
+      const value = bookToSend[key as keyType];
+
+      if(typeof value === 'string'){
+        formData.append(key,value)
+      }
+
+      if(typeof value === 'object'){
+        formData.append(key, JSON.stringify(value));
+      }
+    }
+
+    await onSubmit(formData, file)
+    setBookInfo({ ...defaultBookInfo, file: null });
+      setCover("");
+    } catch (error) {
+      parseError(error);
+    } finally{
+      setBusy(false);
+    }
+    
 
   }
 
@@ -203,7 +229,7 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
   return (
     <form onSubmit={handleSubmit} className="p-10 space-y-6">
       <h1 className="pb-6 font-semibold text-2xl w-full">{title}</h1>
-
+    <div>
       <label htmlFor="file" className={clsx("mb-2", errors?.file && "text-red-400")}>
         <span>Select File: </span>
         <input
@@ -215,6 +241,8 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
         />
       </label>
       <ErrorList errors={errors?.file} />
+    </div>
+      
       <PosterSelector
         src={cover}
         name="cover"
@@ -347,7 +375,7 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = ({
           <ErrorList errors={errors?.price} />
       </div>
 
-      <Button type="submit" className="w-full">
+      <Button isLoading={busy} type="submit" className="w-full">
         {submitBtnTitle}
       </Button>
     </form>
